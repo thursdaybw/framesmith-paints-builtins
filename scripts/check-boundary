@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+if rg -n 'android\.|androidx\.|java\.awt|org\.json|kotlinx\.serialization' "$ROOT/kotlin/src"; then
+  echo 'Paint built-ins must remain host/serialization independent.' >&2
+  exit 1
+fi

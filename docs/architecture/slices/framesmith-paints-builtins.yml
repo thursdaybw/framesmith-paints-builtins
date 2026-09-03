@@ -1,0 +1,31 @@
+slice: framesmith-paints-builtins
+status: active
+responsibility: "Own FrameSmith first-party generic paint identities, authored spec factories, parameter validation, and portable resolution semantics."
+actor: "FrameSmith composition roots and extension authors selecting first-party paints without teaching stable consumer/planner/format/host code their identities."
+currentOwnership: "Solid/gradient paint identities and parameter interpretation were repeated through target-specific project, format, planner, and host branches."
+designProblem: "Concrete FrameSmith paint semantics cannot vary independently while stable target-family modules enumerate built-in variants."
+chosenResponse: production-refactor
+newOwnership: "framesmith-paints-builtins contributes solid and linear-gradient plugins through paint-core. Percentage coordinates resolve against generic target bounds; hosts receive only renderer-neutral PaintOperation values."
+dependencyImprovement:
+  - "The built-ins depend only on paint-core and Kotlin common code."
+  - "Built-in identities are absent from stable project/format/planner/host policy."
+  - "Shape, text, and future eligible visual consumers can install the same contribution."
+  - "External contributions compose through exactly the same resolver path as FrameSmith paints."
+behaviouralEvidence:
+  - "Solid authored intent resolves to SolidFill without target- or host-specific paint types."
+  - "Linear-gradient percentage points resolve against generic target bounds to renderer-neutral pixel coordinates."
+  - "Malformed supplied parameters fail explicitly rather than receiving defaults."
+  - "An extension contribution resolves through the same immutable composition path."
+whyNotMetricGaming: "Concrete semantics move behind the generic paint extension boundary and are verified independently on JVM and linuxX64. No target-family switch is hidden behind aliases, reflection, registries, or suppression."
+antiGaming:
+  parameterObjectCamouflage: "GradientStopSpec and PercentPointSpec are first-party authored paint concepts with their own parameter semantics."
+  oneToOneActionAlias: "Plugins own concrete paint interpretation rather than forwarding stable consumer methods."
+  mechanicalFunctionSplitting: "Parsing helpers separate distinct nested parameter validations; they are not metric-driven wrappers."
+findings:
+  - rule: VariationAxisDispatch
+    symbol: first-party solid and linear-gradient paint semantics
+    disposition: production-refactor
+    justification: "Concrete paint implementations belong in independently installable generic built-ins, not repeated target-specific switches."
+verification:
+  canonicalCommand: "./gradlew :kotlin:check :kotlin:jvmTest :kotlin:linuxX64Test -ParchitectureSlice=framesmith-paints-builtins --no-daemon --console=plain && ./scripts/check-boundary"
+  canonicalResult: "PASS 2026-09-03: JVM + linuxX64 tests, architecture review, Human Parsing review, ktlint, and the selected architecture ledger all passed."

@@ -1,0 +1,3 @@
+[submodule "vendor/bevans-bench-kotlin-quality"]
+	path = vendor/bevans-bench-kotlin-quality
+	url = git@github.com:thursdaybw/bevans-bench-kotlin-quality.git
