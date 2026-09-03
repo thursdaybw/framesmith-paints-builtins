@@ -7,24 +7,36 @@ import com.framesmith.media.paint.PaintPluginResult
 import com.framesmith.media.paint.PaintResolutionContext
 import com.framesmith.media.paint.PaintSpec
 
-internal class SolidPaintPlugin : PaintPlugin {
+internal class SolidPaintPlugin :
+    PaintPlugin,
+    FrameSmithPaintSpecInspector {
 
     override val paintId: PaintId = FrameSmithPaintIds.SOLID
+
+    override fun inspect(paint: PaintSpec): FrameSmithPaintSpecInspection {
+
+        return inspectSolidSpec(paint)
+
+    }
 
     override fun resolve(
         paint: PaintSpec,
         context: PaintResolutionContext,
     ): PaintPluginResult {
 
-        val color = paint.parameters.text(COLOR)
+        return when (val inspection = inspect(paint)) {
+            is FrameSmithPaintSpecInspection.Solid -> {
+                PaintPluginResult.Resolved(listOf(PaintOperation.SolidFill(inspection.color)))
+            }
 
-        if (color.isNullOrBlank()) {
-            return PaintPluginResult.InvalidParameters("solid paint requires a non-blank '$COLOR'")
+            is FrameSmithPaintSpecInspection.InvalidFrameSmithPaint -> {
+                PaintPluginResult.InvalidParameters(inspection.reason)
+            }
+
+            else -> {
+                PaintPluginResult.InvalidParameters("solid paint inspection did not return solid details")
+            }
         }
-
-        return PaintPluginResult.Resolved(
-            listOf(PaintOperation.SolidFill(color)),
-        )
 
     }
 

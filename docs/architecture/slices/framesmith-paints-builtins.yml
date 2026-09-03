@@ -11,11 +11,13 @@ dependencyImprovement:
   - "Built-in identities are absent from stable project/format/planner/host policy."
   - "Shape, text, and future eligible visual consumers can install the same contribution."
   - "External contributions compose through exactly the same resolver path as FrameSmith paints."
+  - "Hosts can inspect FrameSmith-authored specs through typed builtins API without parsing PaintSpec parameter keys."
 behaviouralEvidence:
   - "Solid authored intent resolves to SolidFill without target- or host-specific paint types."
   - "Linear-gradient percentage points resolve against generic target bounds to renderer-neutral pixel coordinates."
   - "Malformed supplied parameters fail explicitly rather than receiving defaults."
   - "An extension contribution resolves through the same immutable composition path."
+  - "Typed inspection returns first-party details, reports malformed first-party specs explicitly, and leaves extension identities opaque."
 whyNotMetricGaming: "Concrete semantics move behind the generic paint extension boundary and are verified independently on JVM and linuxX64. No target-family switch is hidden behind aliases, reflection, registries, or suppression."
 antiGaming:
   parameterObjectCamouflage: "GradientStopSpec and PercentPointSpec are first-party authored paint concepts with their own parameter semantics."

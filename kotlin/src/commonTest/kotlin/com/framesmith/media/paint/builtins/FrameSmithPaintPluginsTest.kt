@@ -129,3 +129,62 @@ class FrameSmithPaintPluginsTest {
     }
 
 }
+
+class FrameSmithPaintSpecInspectionTest {
+
+    @Test
+    fun `solid inspection exposes typed authored details`() {
+
+        val inspection = FrameSmithPaintSpecs.inspect(FrameSmithPaintSpecs.solid("#123456"))
+
+        assertEquals(
+            FrameSmithPaintSpecInspection.Solid("#123456"),
+            inspection,
+        )
+
+    }
+
+    @Test
+    fun `gradient inspection exposes typed authored details`() {
+
+        val stops =
+            listOf(
+                FrameSmithPaintSpecs.GradientStopSpec(0.0, "#111111"),
+                FrameSmithPaintSpecs.GradientStopSpec(100.0, "#EEEEEE"),
+            )
+        val start = FrameSmithPaintSpecs.PercentPointSpec(10.0, 20.0)
+        val end = FrameSmithPaintSpecs.PercentPointSpec(90.0, 80.0)
+        val inspection = FrameSmithPaintSpecs.inspect(FrameSmithPaintSpecs.linearGradient(stops, start, end))
+
+        assertEquals(
+            FrameSmithPaintSpecInspection.LinearGradient(stops, start, end),
+            inspection,
+        )
+
+    }
+
+    @Test
+    fun `extension paint remains explicitly other`() {
+
+        val inspection =
+            FrameSmithPaintSpecs.inspect(
+                PaintSpec(PaintId("example.paint.external")),
+            )
+
+        assertEquals(FrameSmithPaintSpecInspection.OtherPaint, inspection)
+
+    }
+
+    @Test
+    fun `malformed first-party paint remains explicit`() {
+
+        val inspection =
+            FrameSmithPaintSpecs.inspect(
+                PaintSpec(FrameSmithPaintIds.SOLID),
+            )
+
+        assertIs<FrameSmithPaintSpecInspection.InvalidFrameSmithPaint>(inspection)
+
+    }
+
+}
