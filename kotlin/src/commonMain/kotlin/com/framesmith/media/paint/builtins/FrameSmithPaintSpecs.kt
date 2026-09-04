@@ -18,6 +18,22 @@ object FrameSmithPaintSpecs {
 
     }
 
+    fun solidStroke(
+        color: String,
+        widthPercentOfHeight: Double,
+    ): PaintSpec {
+
+        return PaintSpec(
+            id = FrameSmithPaintIds.SOLID_STROKE,
+            parameters =
+                PaintObject.of(
+                    COLOR to PaintText(color),
+                    WIDTH_PERCENT_OF_HEIGHT to PaintNumber(widthPercentOfHeight),
+                ),
+        )
+
+    }
+
     fun linearGradient(
         stops: List<GradientStopSpec>,
         start: PercentPointSpec = PercentPointSpec.leftCenter(),
@@ -87,6 +103,7 @@ object FrameSmithPaintSpecs {
 }
 
 internal const val COLOR = "color"
+internal const val WIDTH_PERCENT_OF_HEIGHT = "widthPercentOfHeight"
 internal const val STOPS = "stops"
 internal const val START = "start"
 internal const val END = "end"

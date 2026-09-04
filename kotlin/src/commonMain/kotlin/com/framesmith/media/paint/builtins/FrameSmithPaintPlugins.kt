@@ -14,6 +14,7 @@ object FrameSmithPaintPlugins {
         listOf(
             SolidPaintPlugin(),
             LinearGradientPaintPlugin(),
+            SolidStrokePaintPlugin(),
         )
 
     private val inspectorsById: Map<PaintId, FrameSmithPaintSpecInspector> =

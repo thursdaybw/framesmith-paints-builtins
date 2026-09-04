@@ -11,6 +11,11 @@ sealed interface FrameSmithPaintSpecInspection {
         val color: String,
     ) : FrameSmithPaintSpecInspection
 
+    data class SolidStroke(
+        val color: String,
+        val widthPercentOfHeight: Double,
+    ) : FrameSmithPaintSpecInspection
+
     data class LinearGradient(
         val stops: List<FrameSmithPaintSpecs.GradientStopSpec>,
         val start: FrameSmithPaintSpecs.PercentPointSpec,
@@ -52,6 +57,29 @@ internal fun inspectSolidSpec(paint: PaintSpec): FrameSmithPaintSpecInspection {
     }
 
     return FrameSmithPaintSpecInspection.Solid(color)
+
+}
+
+internal fun inspectSolidStrokeSpec(paint: PaintSpec): FrameSmithPaintSpecInspection {
+
+    val color = paint.parameters.text(COLOR)
+    val widthPercentOfHeight = paint.parameters.number(WIDTH_PERCENT_OF_HEIGHT)
+
+    if (color.isNullOrBlank()) {
+        return FrameSmithPaintSpecInspection.InvalidFrameSmithPaint(
+            paint.id,
+            "solid stroke requires a non-blank '$COLOR'",
+        )
+    }
+
+    if (widthPercentOfHeight == null || !widthPercentOfHeight.isFinite() || widthPercentOfHeight <= 0.0) {
+        return FrameSmithPaintSpecInspection.InvalidFrameSmithPaint(
+            paint.id,
+            "solid stroke requires positive '$WIDTH_PERCENT_OF_HEIGHT'",
+        )
+    }
+
+    return FrameSmithPaintSpecInspection.SolidStroke(color, widthPercentOfHeight)
 
 }
 

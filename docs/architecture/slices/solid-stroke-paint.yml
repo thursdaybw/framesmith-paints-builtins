@@ -1,0 +1,29 @@
+slice: solid-stroke-paint
+status: active
+responsibility: "Provide first-party authored solid stroke through the generic paint capability so text and future visual targets do not own stroke rendering mechanics."
+actor: "FrameSmith style presets and any consumer selecting a first-party solid stroke paint."
+currentOwnership: "Paint core already exposed target-neutral SolidStroke execution, but first-party authored paint built-ins had no solid-stroke identity/spec/plugin, leaving text stroke represented as a separate raw color/width path."
+designProblem: "Text cannot converge onto the generic paint capability while ordinary first-party stroke intent still has no authored PaintSpec identity or plugin. Keeping raw stroke color/width in text would preserve duplicate paint mechanics; creating a text-specific stroke resolver would violate the generic paint boundary."
+chosenResponse: production-refactor
+newOwnership: "framesmith-paints-builtins owns framesmith.paint.solid-stroke, its color and widthPercentOfHeight authored parameters, validation, typed inspection, and resolution to target-neutral PaintOperation.SolidStroke."
+dependencyImprovement:
+  - "Text and future visual consumers can select ordinary PaintSpec values instead of carrying target-specific stroke rendering mechanics."
+  - "Stable consumers depend on paint-core identities/contracts rather than parsing first-party stroke parameter keys."
+  - "Hosts receive only PaintOperation.SolidStroke and remain ignorant of authored paint ids and parameters."
+behaviouralEvidence:
+  - "SolidStrokePaintPluginTest proves 2.5 percent of an 80-pixel target height resolves to a 2-pixel SolidStroke operation."
+  - "A non-positive authored stroke width is rejected as InvalidParameters before host execution."
+  - "The first-party plugin is composed through FrameSmithPaintPlugins alongside solid fill and linear gradient and contains no text, shape, or host identity."
+whyNotMetricGaming: "This adds a missing real first-party paint capability required to remove duplicated text stroke mechanics. It introduces no suppression, alias, detector-only wrapper, target-family switch, or compatibility path."
+antiGaming:
+  parameterObjectCamouflage: "widthPercentOfHeight is durable authored paint intent whose pixel meaning depends on runtime target bounds."
+  oneToOneActionAlias: "The plugin owns first-party stroke parameter validation and target-relative resolution rather than forwarding another resolver."
+  mechanicalFunctionSplitting: "The implementation adds one independently installable paint identity and focused parsing, not source splitting to reduce detector counts."
+findings:
+  - rule: VariationAxisDispatch
+    symbol: "first-party solid stroke paint semantics"
+    disposition: production-refactor
+    justification: "Solid stroke is generic paint behavior and must be independently selectable through PaintSpec rather than remaining embedded in text-specific closed mechanics."
+verification:
+  canonicalCommand: "./scripts/check-quality -ParchitectureSlice=solid-stroke-paint --console=plain && ./scripts/check-boundary"
+  canonicalResult: "PASS 2026-09-05: JVM + linuxX64 tests, architecture review, Human Parsing review, ktlint, and boundary checks passed."
