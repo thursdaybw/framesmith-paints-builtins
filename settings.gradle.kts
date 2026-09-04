@@ -1,5 +1,7 @@
 pluginManagement {
-    includeBuild("vendor/bevans-bench-kotlin-quality")
+    includeBuild("vendor/bevans-bench-kotlin-quality") {
+        name = "framesmith-paints-builtins-quality"
+    }
     repositories {
         mavenCentral()
         gradlePluginPortal()
@@ -16,7 +18,9 @@ dependencyResolutionManagement {
 rootProject.name = "framesmith-paints-builtins"
 
 if (gradle.parent == null) {
-    includeBuild("vendor/bevans-bench-kotlin-quality")
+    includeBuild("vendor/bevans-bench-kotlin-quality") {
+        name = "framesmith-paints-builtins-quality"
+    }
 }
 includeBuild("../framesmith-paint-core")
 include(":kotlin")

@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+toolkit_root="$repository_root/vendor/bevans-bench-kotlin-quality"
+
+cd "$repository_root"
+source "$toolkit_root/scripts/quality-guidance.sh"
+
+print_module_quality_guidance() {
+  cat <<'GUIDANCE'
+
+MODULE QUALITY CHECK FAILED:
+- Fix the underlying design, correctness, architecture, or source-form problem.
+- Keep the module red until the correction is coherent.
+GUIDANCE
+}
+
+export -f print_clean_architecture_standard print_module_quality_guidance
+
+exec "$toolkit_root/scripts/run-gradle-quality-check" \
+  "$repository_root" \
+  "$toolkit_root" \
+  "FrameSmith module quality checks failed." \
+  print_module_quality_guidance \
+  check \
+  "$@"
