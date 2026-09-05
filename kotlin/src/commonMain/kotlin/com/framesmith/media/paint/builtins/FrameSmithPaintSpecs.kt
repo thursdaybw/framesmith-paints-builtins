@@ -52,6 +52,24 @@ object FrameSmithPaintSpecs {
 
     }
 
+    fun radialGradient(
+        stops: List<GradientStopSpec>,
+        center: PercentPointSpec = PercentPointSpec.center(),
+        radiusPercentOfMinimumDimension: Double = DEFAULT_RADIAL_RADIUS_PERCENT,
+    ): PaintSpec {
+
+        return PaintSpec(
+            id = FrameSmithPaintIds.RADIAL_GRADIENT,
+            parameters =
+                PaintObject.of(
+                    STOPS to PaintList.from(stops.map(GradientStopSpec::toPaintValue)),
+                    CENTER to center.toPaintValue(),
+                    RADIUS_PERCENT_OF_MINIMUM_DIMENSION to PaintNumber(radiusPercentOfMinimumDimension),
+                ),
+        )
+
+    }
+
     data class GradientStopSpec(
         val offsetPercent: Double,
         val color: String,
@@ -84,6 +102,12 @@ object FrameSmithPaintSpecs {
 
         companion object {
 
+            fun center(): PercentPointSpec {
+
+                return PercentPointSpec(CENTER_PERCENT, CENTER_PERCENT)
+
+            }
+
             fun leftCenter(): PercentPointSpec {
 
                 return PercentPointSpec(MINIMUM_PERCENT, CENTER_PERCENT)
@@ -107,9 +131,12 @@ internal const val WIDTH_PERCENT_OF_HEIGHT = "widthPercentOfHeight"
 internal const val STOPS = "stops"
 internal const val START = "start"
 internal const val END = "end"
+internal const val CENTER = "center"
+internal const val RADIUS_PERCENT_OF_MINIMUM_DIMENSION = "radiusPercentOfMinimumDimension"
 internal const val OFFSET_PERCENT = "offsetPercent"
 internal const val X_PERCENT = "xPercent"
 internal const val Y_PERCENT = "yPercent"
 internal const val MINIMUM_PERCENT = 0.0
 internal const val CENTER_PERCENT = 50.0
 internal const val FULL_PERCENT = 100.0
+internal const val DEFAULT_RADIAL_RADIUS_PERCENT = 50.0

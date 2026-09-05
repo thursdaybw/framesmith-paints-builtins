@@ -14,6 +14,7 @@ object FrameSmithPaintPlugins {
         listOf(
             SolidPaintPlugin(),
             LinearGradientPaintPlugin(),
+            RadialGradientPaintPlugin(),
             SolidStrokePaintPlugin(),
         )
 

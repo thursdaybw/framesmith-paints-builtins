@@ -1,0 +1,30 @@
+slice: radial-gradient-paint
+status: active
+responsibility: "Provide first-party authored radial-gradient paint through the generic paint capability, resolving target-relative center and radius into renderer-neutral execution geometry."
+actor: "FrameSmith visual consumers selecting a radial gradient without owning radial-gradient identity, parsing, or target-relative resolution."
+currentOwnership: "The generic paint seam already supports independently installable paint plugins, but the first-party family only exercised solid, linear-gradient, and solid-stroke semantics."
+designProblem: "Without a materially different paint, the open seam remained insufficiently stress-tested: a future radial gradient might still have exposed hidden consumer or planner assumptions about linear axes or scalar fills."
+chosenResponse: production-refactor
+newOwnership: "framesmith-paints-builtins owns framesmith.paint.radial-gradient, authored stops/center/radius-percent parameters, validation, typed inspection, and target-relative resolution to PaintOperation.RadialGradientFill. Radius is authored as a percentage of the target minimum dimension and resolved to pixels before host execution."
+dependencyImprovement:
+  - "Shape, text, and planner code remain ignorant of the radial-gradient paint id and parameter vocabulary."
+  - "The plugin depends only on generic PaintBounds and paint-core execution values, not target-family or host types."
+  - "Hosts receive resolved center/radius/stops and therefore execute mechanics without interpreting authored percentages."
+behaviouralEvidence:
+  - "A 25%/75% center in bounds x=100 y=50 width=300 height=200 resolves to portable point 175,200."
+  - "A 40% radius against the same target resolves to 80 pixels from the 200-pixel minimum dimension."
+  - "Typed first-party inspection exposes radial-gradient authored details without teaching stable consumers parameter keys."
+  - "The radial plugin is installed through the same FrameSmithPaintPlugins contribution as every other first-party paint."
+whyNotMetricGaming: "Radial gradient is a genuinely different paint implementation selected by real authored identity. The proof intentionally exercises target-relative two-dimensional geometry rather than introducing an alias, wrapper, fake linear gradient, or detector-only extension."
+antiGaming:
+  parameterObjectCamouflage: "Center and radius percentage are durable authored radial-gradient concepts whose pixel values depend on runtime target bounds."
+  oneToOneActionAlias: "RadialGradientPaintPlugin owns validation and geometric resolution rather than forwarding an existing linear-gradient implementation."
+  mechanicalFunctionSplitting: "The new plugin is one independent paint implementation on the existing variation axis; parsing helpers represent nested parameter responsibilities."
+findings:
+  - rule: VariationAxisDispatch
+    symbol: "first-party radial-gradient paint semantics"
+    disposition: production-refactor
+    justification: "A materially different paint must plug into the existing generic paint axis without target consumers enumerating the new identity."
+verification:
+  canonicalCommand: "./scripts/check-quality -ParchitectureSlice=radial-gradient-paint --console=plain && ./scripts/check-boundary"
+  canonicalResult: "PASS 2026-09-05: JVM + linuxX64 tests, architecture review, Human Parsing review, selected architecture ledger, ktlint, shared quality guidance, and boundary check passed."

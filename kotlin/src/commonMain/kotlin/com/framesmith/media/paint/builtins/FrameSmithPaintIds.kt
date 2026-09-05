@@ -9,6 +9,8 @@ object FrameSmithPaintIds {
 
     val LINEAR_GRADIENT = PaintId("framesmith.paint.linear-gradient")
 
+    val RADIAL_GRADIENT = PaintId("framesmith.paint.radial-gradient")
+
     val SOLID_STROKE = PaintId("framesmith.paint.solid-stroke")
 
 }

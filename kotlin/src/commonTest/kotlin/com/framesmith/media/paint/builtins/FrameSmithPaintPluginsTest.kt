@@ -56,6 +56,31 @@ class FrameSmithPaintPluginsTest {
     }
 
     @Test
+    fun radialGradientResolvesCenterAndRadiusInsideTargetBounds() {
+
+        val spec =
+            FrameSmithPaintSpecs.radialGradient(
+                stops =
+                    listOf(
+                        FrameSmithPaintSpecs.GradientStopSpec(0.0, "#FFFFFF"),
+                        FrameSmithPaintSpecs.GradientStopSpec(100.0, "#000000"),
+                    ),
+                center = FrameSmithPaintSpecs.PercentPointSpec(25.0, 75.0),
+                radiusPercentOfMinimumDimension = 40.0,
+            )
+
+        val resolution = FrameSmithPaintPlugins.resolver().resolve(listOf(spec), context)
+        val operation =
+            assertIs<PaintOperation.RadialGradientFill>(
+                assertIs<PaintResolution.Resolved>(resolution).operations.single(),
+            )
+
+        assertEquals(PaintOperation.Point(175.0, 200.0), operation.center)
+        assertEquals(80.0, operation.radiusPixels)
+
+    }
+
+    @Test
     fun malformedSuppliedSolidColorIsInvalidInsteadOfDefaulted() {
 
         val spec = PaintSpec(FrameSmithPaintIds.SOLID, PaintObject.empty())
@@ -158,6 +183,27 @@ class FrameSmithPaintSpecInspectionTest {
 
         assertEquals(
             FrameSmithPaintSpecInspection.LinearGradient(stops, start, end),
+            inspection,
+        )
+
+    }
+
+    @Test
+    fun `radial gradient inspection exposes typed authored details`() {
+
+        val stops =
+            listOf(
+                FrameSmithPaintSpecs.GradientStopSpec(0.0, "#FFFFFF"),
+                FrameSmithPaintSpecs.GradientStopSpec(100.0, "#000000"),
+            )
+        val center = FrameSmithPaintSpecs.PercentPointSpec(20.0, 30.0)
+        val inspection =
+            FrameSmithPaintSpecs.inspect(
+                FrameSmithPaintSpecs.radialGradient(stops, center, 45.0),
+            )
+
+        assertEquals(
+            FrameSmithPaintSpecInspection.RadialGradient(stops, center, 45.0),
             inspection,
         )
 

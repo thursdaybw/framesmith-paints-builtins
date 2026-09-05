@@ -22,6 +22,12 @@ sealed interface FrameSmithPaintSpecInspection {
         val end: FrameSmithPaintSpecs.PercentPointSpec,
     ) : FrameSmithPaintSpecInspection
 
+    data class RadialGradient(
+        val stops: List<FrameSmithPaintSpecs.GradientStopSpec>,
+        val center: FrameSmithPaintSpecs.PercentPointSpec,
+        val radiusPercentOfMinimumDimension: Double,
+    ) : FrameSmithPaintSpecInspection
+
     data class InvalidFrameSmithPaint(
         val paintId: PaintId,
         val reason: String,
@@ -101,6 +107,68 @@ internal fun inspectLinearGradientSpec(paint: PaintSpec): FrameSmithPaintSpecIns
 
 }
 
+internal fun inspectRadialGradientSpec(paint: PaintSpec): FrameSmithPaintSpecInspection {
+
+    return when (val parsed = parseRadialGradientSpec(paint.parameters)) {
+        is ParsedRadialGradientSpec.Valid -> {
+            FrameSmithPaintSpecInspection.RadialGradient(
+                stops = parsed.stops,
+                center = parsed.center,
+                radiusPercentOfMinimumDimension = parsed.radiusPercentOfMinimumDimension,
+            )
+        }
+
+        is ParsedRadialGradientSpec.Invalid -> {
+            FrameSmithPaintSpecInspection.InvalidFrameSmithPaint(paint.id, parsed.reason)
+        }
+    }
+
+}
+
+internal sealed interface ParsedRadialGradientSpec {
+
+    data class Valid(
+        val stops: List<FrameSmithPaintSpecs.GradientStopSpec>,
+        val center: FrameSmithPaintSpecs.PercentPointSpec,
+        val radiusPercentOfMinimumDimension: Double,
+    ) : ParsedRadialGradientSpec
+
+    data class Invalid(
+        val reason: String,
+    ) : ParsedRadialGradientSpec
+
+}
+
+internal fun parseRadialGradientSpec(parameters: PaintObject): ParsedRadialGradientSpec {
+
+    val stops = parseGradientStops(parameters)
+
+    if (stops is ParsedGradientStops.Invalid) {
+        return ParsedRadialGradientSpec.Invalid(stops.reason)
+    }
+
+    val center = parsePercentPoint(parameters.objectValue(CENTER), CENTER)
+
+    if (center is ParsedPercentPoint.Invalid) {
+        return ParsedRadialGradientSpec.Invalid(center.reason)
+    }
+
+    val radiusPercent = parameters.number(RADIUS_PERCENT_OF_MINIMUM_DIMENSION)
+
+    if (radiusPercent == null || !radiusPercent.isFinite() || radiusPercent <= 0.0) {
+        return ParsedRadialGradientSpec.Invalid(
+            "radial gradient requires positive '$RADIUS_PERCENT_OF_MINIMUM_DIMENSION'",
+        )
+    }
+
+    return ParsedRadialGradientSpec.Valid(
+        stops = (stops as ParsedGradientStops.Valid).stops,
+        center = (center as ParsedPercentPoint.Valid).point,
+        radiusPercentOfMinimumDimension = radiusPercent,
+    )
+
+}
+
 internal sealed interface ParsedGradientSpec {
 
     data class Valid(
@@ -143,7 +211,7 @@ internal fun parseGradientSpec(parameters: PaintObject): ParsedGradientSpec {
 
 }
 
-private sealed interface ParsedGradientStops {
+internal sealed interface ParsedGradientStops {
 
     data class Valid(
         val stops: List<FrameSmithPaintSpecs.GradientStopSpec>,
@@ -155,12 +223,12 @@ private sealed interface ParsedGradientStops {
 
 }
 
-private fun parseGradientStops(parameters: PaintObject): ParsedGradientStops {
+internal fun parseGradientStops(parameters: PaintObject): ParsedGradientStops {
 
     val values = parameters.list(STOPS)
 
     if (values == null || values.values.size < MINIMUM_GRADIENT_STOP_COUNT) {
-        return ParsedGradientStops.Invalid("linear gradient requires at least two '$STOPS'")
+        return ParsedGradientStops.Invalid("gradient requires at least two '$STOPS'")
     }
 
     val stops = mutableListOf<FrameSmithPaintSpecs.GradientStopSpec>()
@@ -169,21 +237,21 @@ private fun parseGradientStops(parameters: PaintObject): ParsedGradientStops {
         val stop = value as? PaintObject
 
         if (stop == null) {
-            return ParsedGradientStops.Invalid("each linear gradient stop must be an object")
+            return ParsedGradientStops.Invalid("each gradient stop must be an object")
         }
 
         val offsetPercent = stop.number(OFFSET_PERCENT)
         val color = stop.text(COLOR)
 
         if (offsetPercent == null || offsetPercent !in MINIMUM_PERCENT..FULL_PERCENT || color.isNullOrBlank()) {
-            return ParsedGradientStops.Invalid("each linear gradient stop requires valid '$OFFSET_PERCENT' and '$COLOR'")
+            return ParsedGradientStops.Invalid("each gradient stop requires valid '$OFFSET_PERCENT' and '$COLOR'")
         }
 
         stops += FrameSmithPaintSpecs.GradientStopSpec(offsetPercent, color)
     }
 
     if (!stops.zipWithNext().all(::isOrderedGradientStopPair)) {
-        return ParsedGradientStops.Invalid("linear gradient stops must be ordered by '$OFFSET_PERCENT'")
+        return ParsedGradientStops.Invalid("gradient stops must be ordered by '$OFFSET_PERCENT'")
     }
 
     return ParsedGradientStops.Valid(stops.toList())
