@@ -1,0 +1,30 @@
+slice: open-paint-execution-builtins
+status: active
+responsibility: "Move FrameSmith first-party paint primitives from the former sealed core PaintOperation family into independently addable portable execution specs emitted by the owning paint plugins."
+actor: "FrameSmith first-party paint plugins and host executors that opt into the specific primitive identities they support."
+currentOwnership: "First-party plugins resolved authored paint specs into concrete members of framesmith-paint-core's sealed PaintOperation family, so adding a primitive required changing core and every exhaustive host consumer."
+designProblem: "The built-in paint implementations need strongly typed renderer-neutral execution data without making paint-core own the complete primitive family. Radial gradient showed that the former closed operation vocabulary was not actually stable."
+chosenResponse: production-refactor
+newOwnership: "framesmith-paints-builtins owns FrameSmithPaintExecutionIds plus strongly typed SolidFillPaintExecution, LinearGradientFillPaintExecution, RadialGradientFillPaintExecution, and SolidStrokePaintExecution specs. Each existing PaintPlugin emits its execution spec through PaintPluginOutput; hosts install separate executors keyed by the stable execution id."
+dependencyImprovement:
+  - "framesmith-paint-core no longer changes when FrameSmith adds a first-party execution primitive."
+  - "Hosts depend only on the concrete primitive implementations they choose to execute rather than an exhaustive central family."
+  - "Authored paint identity remains distinct from execution identity, so multiple authored paints may reuse the same primitive."
+behaviouralEvidence:
+  - "Solid fill and solid stroke resolve to typed execution specs with validated renderer facts."
+  - "Linear and radial gradients resolve authored percentages against PaintResolutionContext before host execution."
+  - "Gradient execution specs preserve ordered stops and validated resolved geometry."
+  - "Malformed authored parameters are rejected through PaintPluginOutput rather than a PaintPluginResult family."
+whyNotMetricGaming: "The change removes central family ownership and result dispatch instead of hiding the old PaintOperation switch behind helpers or replacing it with another sealed family."
+antiGaming:
+  parameterObjectCamouflage: "Each execution spec names one concrete renderer primitive and carries only facts required to execute it."
+  oneToOneActionAlias: "Execution specs are portable renderer requests that may be emitted by multiple authored paint plugins, not aliases for plugin calls."
+  mechanicalFunctionSplitting: "One type per file follows the shared file-landmark rule and each type represents a distinct execution concept rather than splitting methods to reduce metrics."
+findings:
+  - rule: VariationAxisDispatch
+    symbol: FrameSmith first-party PaintOperation variants
+    disposition: production-refactor
+    justification: "Moving concrete primitive specs to the built-ins module lets the primitive family grow by addition instead of reopening paint-core and host family switches."
+verification:
+  canonicalCommand: "./gradlew check -ParchitectureSlice=open-paint-execution-builtins --console=plain"
+  canonicalResult: "PASS 2026-09-06: JVM + linuxX64 tests, architecture review, Human Parsing review, selected architecture ledger, ktlint, and shared quality guidance passed after removing the parser result-family dispatch."

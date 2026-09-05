@@ -4,12 +4,11 @@ import com.framesmith.media.paint.PaintBounds
 import com.framesmith.media.paint.PaintId
 import com.framesmith.media.paint.PaintNumber
 import com.framesmith.media.paint.PaintObject
-import com.framesmith.media.paint.PaintOperation
-import com.framesmith.media.paint.PaintResolution
 import com.framesmith.media.paint.PaintResolutionContext
 import com.framesmith.media.paint.PaintSpec
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 
 class FrameSmithPaintPluginsTest {
@@ -19,16 +18,13 @@ class FrameSmithPaintPluginsTest {
     @Test
     fun solidSpecResolvesToPortableSolidFill() {
 
-        val resolution =
+        val executions =
             FrameSmithPaintPlugins.resolver().resolve(
                 listOf(FrameSmithPaintSpecs.solid("#123456")),
                 context,
             )
 
-        assertEquals(
-            listOf(PaintOperation.SolidFill("#123456")),
-            assertIs<PaintResolution.Resolved>(resolution).operations,
-        )
+        assertEquals(listOf(SolidFillPaintExecution("#123456")), executions)
 
     }
 
@@ -44,14 +40,11 @@ class FrameSmithPaintPluginsTest {
                     ),
             )
 
-        val resolution = FrameSmithPaintPlugins.resolver().resolve(listOf(spec), context)
-        val operation =
-            assertIs<PaintOperation.LinearGradientFill>(
-                assertIs<PaintResolution.Resolved>(resolution).operations.single(),
-            )
+        val executions = FrameSmithPaintPlugins.resolver().resolve(listOf(spec), context)
+        val operation = assertIs<LinearGradientFillPaintExecution>(executions.single())
 
-        assertEquals(PaintOperation.Point(100.0, 150.0), operation.start)
-        assertEquals(PaintOperation.Point(400.0, 150.0), operation.end)
+        assertEquals(PaintExecutionPoint(100.0, 150.0), operation.start)
+        assertEquals(PaintExecutionPoint(400.0, 150.0), operation.end)
 
     }
 
@@ -69,13 +62,10 @@ class FrameSmithPaintPluginsTest {
                 radiusPercentOfMinimumDimension = 40.0,
             )
 
-        val resolution = FrameSmithPaintPlugins.resolver().resolve(listOf(spec), context)
-        val operation =
-            assertIs<PaintOperation.RadialGradientFill>(
-                assertIs<PaintResolution.Resolved>(resolution).operations.single(),
-            )
+        val executions = FrameSmithPaintPlugins.resolver().resolve(listOf(spec), context)
+        val operation = assertIs<RadialGradientFillPaintExecution>(executions.single())
 
-        assertEquals(PaintOperation.Point(175.0, 200.0), operation.center)
+        assertEquals(PaintExecutionPoint(175.0, 200.0), operation.center)
         assertEquals(80.0, operation.radiusPixels)
 
     }
@@ -84,12 +74,14 @@ class FrameSmithPaintPluginsTest {
     fun malformedSuppliedSolidColorIsInvalidInsteadOfDefaulted() {
 
         val spec = PaintSpec(FrameSmithPaintIds.SOLID, PaintObject.empty())
-        val resolution = FrameSmithPaintPlugins.resolver().resolve(listOf(spec), context)
+        val failure =
+            assertFailsWith<com.framesmith.media.paint.InvalidPaintParametersException> {
 
-        assertEquals(
-            FrameSmithPaintIds.SOLID,
-            assertIs<PaintResolution.InvalidParameters>(resolution).paintId,
-        )
+                FrameSmithPaintPlugins.resolver().resolve(listOf(spec), context)
+
+            }
+
+        assertEquals(FrameSmithPaintIds.SOLID, failure.paintId)
 
     }
 
@@ -112,12 +104,14 @@ class FrameSmithPaintPluginsTest {
                     ),
             )
 
-        val resolution = FrameSmithPaintPlugins.resolver().resolve(listOf(malformed), context)
+        val failure =
+            assertFailsWith<com.framesmith.media.paint.InvalidPaintParametersException> {
 
-        assertEquals(
-            FrameSmithPaintIds.LINEAR_GRADIENT,
-            assertIs<PaintResolution.InvalidParameters>(resolution).paintId,
-        )
+                FrameSmithPaintPlugins.resolver().resolve(listOf(malformed), context)
+
+            }
+
+        assertEquals(FrameSmithPaintIds.LINEAR_GRADIENT, failure.paintId)
 
     }
 
@@ -134,22 +128,18 @@ class FrameSmithPaintPluginsTest {
                     override fun resolve(
                         paint: PaintSpec,
                         context: PaintResolutionContext,
-                    ): com.framesmith.media.paint.PaintPluginResult {
+                        output: com.framesmith.media.paint.PaintPluginOutput,
+                    ) {
 
-                        return com.framesmith.media.paint.PaintPluginResult.Resolved(
-                            listOf(PaintOperation.SolidFill("#ABCDEF")),
-                        )
+                        output.add(SolidFillPaintExecution("#ABCDEF"))
 
                     }
 
                 },
             )
-        val resolution = FrameSmithPaintPlugins.resolver(extension).resolve(listOf(PaintSpec(extensionId)), context)
+        val executions = FrameSmithPaintPlugins.resolver(extension).resolve(listOf(PaintSpec(extensionId)), context)
 
-        assertEquals(
-            listOf(PaintOperation.SolidFill("#ABCDEF")),
-            assertIs<PaintResolution.Resolved>(resolution).operations,
-        )
+        assertEquals(listOf(SolidFillPaintExecution("#ABCDEF")), executions)
 
     }
 

@@ -1,9 +1,8 @@
 package com.framesmith.media.paint.builtins
 
 import com.framesmith.media.paint.PaintId
-import com.framesmith.media.paint.PaintOperation
 import com.framesmith.media.paint.PaintPlugin
-import com.framesmith.media.paint.PaintPluginResult
+import com.framesmith.media.paint.PaintPluginOutput
 import com.framesmith.media.paint.PaintResolutionContext
 import com.framesmith.media.paint.PaintSpec
 
@@ -22,29 +21,29 @@ internal class LinearGradientPaintPlugin :
     override fun resolve(
         paint: PaintSpec,
         context: PaintResolutionContext,
-    ): PaintPluginResult {
+        output: PaintPluginOutput,
+    ) {
 
-        val parsed = parseGradientSpec(paint.parameters)
-
-        if (parsed is ParsedGradientSpec.Invalid) {
-            return PaintPluginResult.InvalidParameters(parsed.reason)
-        }
-
-        parsed as ParsedGradientSpec.Valid
+        val parsed =
+            try {
+                parseLinearGradientParameters(paint.parameters)
+            } catch (failure: FrameSmithPaintParameterException) {
+                output.invalid(failure.message)
+                return
+            }
         val start = parsed.start.resolveIn(context)
         val end = parsed.end.resolveIn(context)
 
         if (start == end) {
-            return PaintPluginResult.InvalidParameters("linear gradient start and end must differ")
+            output.invalid("linear gradient start and end must differ")
+            return
         }
 
-        return PaintPluginResult.Resolved(
-            listOf(
-                PaintOperation.LinearGradientFill(
-                    stops = parsed.stops.map(FrameSmithPaintSpecs.GradientStopSpec::toOperationStop),
-                    start = start,
-                    end = end,
-                ),
+        output.add(
+            LinearGradientFillPaintExecution(
+                stops = parsed.stops.map(FrameSmithPaintSpecs.GradientStopSpec::toExecutionStop),
+                start = start,
+                end = end,
             ),
         )
 
@@ -52,16 +51,16 @@ internal class LinearGradientPaintPlugin :
 
 }
 
-private fun FrameSmithPaintSpecs.GradientStopSpec.toOperationStop(): PaintOperation.GradientStop {
+private fun FrameSmithPaintSpecs.GradientStopSpec.toExecutionStop(): PaintExecutionGradientStop {
 
-    return PaintOperation.GradientStop(offsetPercent, color)
+    return PaintExecutionGradientStop(offsetPercent, color)
 
 }
 
-private fun FrameSmithPaintSpecs.PercentPointSpec.resolveIn(context: PaintResolutionContext): PaintOperation.Point {
+private fun FrameSmithPaintSpecs.PercentPointSpec.resolveIn(context: PaintResolutionContext): PaintExecutionPoint {
 
     val bounds = context.bounds
-    return PaintOperation.Point(
+    return PaintExecutionPoint(
         x = bounds.x + (bounds.widthPixels * xPercent / FULL_PERCENT),
         y = bounds.y + (bounds.heightPixels * yPercent / FULL_PERCENT),
     )

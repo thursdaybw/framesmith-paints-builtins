@@ -1,9 +1,8 @@
 package com.framesmith.media.paint.builtins
 
 import com.framesmith.media.paint.PaintId
-import com.framesmith.media.paint.PaintOperation
 import com.framesmith.media.paint.PaintPlugin
-import com.framesmith.media.paint.PaintPluginResult
+import com.framesmith.media.paint.PaintPluginOutput
 import com.framesmith.media.paint.PaintResolutionContext
 import com.framesmith.media.paint.PaintSpec
 
@@ -22,34 +21,35 @@ internal class SolidStrokePaintPlugin :
     override fun resolve(
         paint: PaintSpec,
         context: PaintResolutionContext,
-    ): PaintPluginResult {
+        output: PaintPluginOutput,
+    ) {
 
-        return when (val inspection = inspect(paint)) {
-            is FrameSmithPaintSpecInspection.SolidStroke -> {
-                val widthPixels = context.bounds.heightPixels * inspection.widthPercentOfHeight / PERCENT_BASE
+        val color = paint.parameters.text(COLOR)
+        val widthPercentOfHeight = paint.parameters.number(WIDTH_PERCENT_OF_HEIGHT)
 
-                if (!widthPixels.isFinite() || widthPixels <= 0.0) {
-                    return PaintPluginResult.InvalidParameters("solid stroke resolved width must be positive")
-                }
-
-                PaintPluginResult.Resolved(
-                    listOf(
-                        PaintOperation.SolidStroke(
-                            color = inspection.color,
-                            widthPixels = widthPixels,
-                        ),
-                    ),
-                )
-            }
-
-            is FrameSmithPaintSpecInspection.InvalidFrameSmithPaint -> {
-                PaintPluginResult.InvalidParameters(inspection.reason)
-            }
-
-            else -> {
-                PaintPluginResult.InvalidParameters("solid stroke inspection did not return stroke details")
-            }
+        if (color.isNullOrBlank()) {
+            output.invalid("solid stroke requires a non-blank '$COLOR'")
+            return
         }
+
+        if (widthPercentOfHeight == null || !widthPercentOfHeight.isFinite() || widthPercentOfHeight <= 0.0) {
+            output.invalid("solid stroke requires positive '$WIDTH_PERCENT_OF_HEIGHT'")
+            return
+        }
+
+        val widthPixels = context.bounds.heightPixels * widthPercentOfHeight / PERCENT_BASE
+
+        if (!widthPixels.isFinite() || widthPixels <= 0.0) {
+            output.invalid("solid stroke resolved width must be positive")
+            return
+        }
+
+        output.add(
+            SolidStrokePaintExecution(
+                color = color,
+                widthPixels = widthPixels,
+            ),
+        )
 
     }
 

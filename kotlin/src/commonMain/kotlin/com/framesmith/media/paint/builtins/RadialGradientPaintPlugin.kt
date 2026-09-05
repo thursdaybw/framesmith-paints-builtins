@@ -1,9 +1,8 @@
 package com.framesmith.media.paint.builtins
 
 import com.framesmith.media.paint.PaintId
-import com.framesmith.media.paint.PaintOperation
 import com.framesmith.media.paint.PaintPlugin
-import com.framesmith.media.paint.PaintPluginResult
+import com.framesmith.media.paint.PaintPluginOutput
 import com.framesmith.media.paint.PaintResolutionContext
 import com.framesmith.media.paint.PaintSpec
 import kotlin.math.min
@@ -23,30 +22,30 @@ internal class RadialGradientPaintPlugin :
     override fun resolve(
         paint: PaintSpec,
         context: PaintResolutionContext,
-    ): PaintPluginResult {
+        output: PaintPluginOutput,
+    ) {
 
-        val parsed = parseRadialGradientSpec(paint.parameters)
-
-        if (parsed is ParsedRadialGradientSpec.Invalid) {
-            return PaintPluginResult.InvalidParameters(parsed.reason)
-        }
-
-        parsed as ParsedRadialGradientSpec.Valid
+        val parsed =
+            try {
+                parseRadialGradientParameters(paint.parameters)
+            } catch (failure: FrameSmithPaintParameterException) {
+                output.invalid(failure.message)
+                return
+            }
         val center = parsed.center.resolveIn(context)
         val minimumDimension = min(context.bounds.widthPixels, context.bounds.heightPixels)
         val radiusPixels = minimumDimension * parsed.radiusPercentOfMinimumDimension / FULL_PERCENT
 
         if (!radiusPixels.isFinite() || radiusPixels <= 0.0) {
-            return PaintPluginResult.InvalidParameters("radial gradient resolved radius must be positive")
+            output.invalid("radial gradient resolved radius must be positive")
+            return
         }
 
-        return PaintPluginResult.Resolved(
-            listOf(
-                PaintOperation.RadialGradientFill(
-                    stops = parsed.stops.map(FrameSmithPaintSpecs.GradientStopSpec::toRadialOperationStop),
-                    center = center,
-                    radiusPixels = radiusPixels,
-                ),
+        output.add(
+            RadialGradientFillPaintExecution(
+                stops = parsed.stops.map(FrameSmithPaintSpecs.GradientStopSpec::toExecutionStop),
+                center = center,
+                radiusPixels = radiusPixels,
             ),
         )
 
@@ -54,16 +53,16 @@ internal class RadialGradientPaintPlugin :
 
 }
 
-private fun FrameSmithPaintSpecs.GradientStopSpec.toRadialOperationStop(): PaintOperation.GradientStop {
+private fun FrameSmithPaintSpecs.GradientStopSpec.toExecutionStop(): PaintExecutionGradientStop {
 
-    return PaintOperation.GradientStop(offsetPercent, color)
+    return PaintExecutionGradientStop(offsetPercent, color)
 
 }
 
-private fun FrameSmithPaintSpecs.PercentPointSpec.resolveIn(context: PaintResolutionContext): PaintOperation.Point {
+private fun FrameSmithPaintSpecs.PercentPointSpec.resolveIn(context: PaintResolutionContext): PaintExecutionPoint {
 
     val bounds = context.bounds
-    return PaintOperation.Point(
+    return PaintExecutionPoint(
         x = bounds.x + (bounds.widthPixels * xPercent / FULL_PERCENT),
         y = bounds.y + (bounds.heightPixels * yPercent / FULL_PERCENT),
     )
