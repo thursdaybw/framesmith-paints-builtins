@@ -6,17 +6,9 @@ import com.framesmith.media.paint.PaintPluginOutput
 import com.framesmith.media.paint.PaintResolutionContext
 import com.framesmith.media.paint.PaintSpec
 
-internal class SolidStrokePaintPlugin :
-    PaintPlugin,
-    FrameSmithPaintSpecInspector {
+internal class SolidStrokePaintPlugin : PaintPlugin {
 
     override val paintId: PaintId = FrameSmithPaintIds.SOLID_STROKE
-
-    override fun inspect(paint: PaintSpec): FrameSmithPaintSpecInspection {
-
-        return inspectSolidStrokeSpec(paint)
-
-    }
 
     override fun resolve(
         paint: PaintSpec,
@@ -24,20 +16,15 @@ internal class SolidStrokePaintPlugin :
         output: PaintPluginOutput,
     ) {
 
-        val color = paint.parameters.text(COLOR)
-        val widthPercentOfHeight = paint.parameters.number(WIDTH_PERCENT_OF_HEIGHT)
+        val details =
+            try {
+                FrameSmithPaintDetails.solidStroke(paint)
+            } catch (failure: FrameSmithPaintParameterException) {
+                output.invalid(failure.message)
+                return
+            }
 
-        if (color.isNullOrBlank()) {
-            output.invalid("solid stroke requires a non-blank '$COLOR'")
-            return
-        }
-
-        if (widthPercentOfHeight == null || !widthPercentOfHeight.isFinite() || widthPercentOfHeight <= 0.0) {
-            output.invalid("solid stroke requires positive '$WIDTH_PERCENT_OF_HEIGHT'")
-            return
-        }
-
-        val widthPixels = context.bounds.heightPixels * widthPercentOfHeight / PERCENT_BASE
+        val widthPixels = context.bounds.heightPixels * details.widthPercentOfHeight / PERCENT_BASE
 
         if (!widthPixels.isFinite() || widthPixels <= 0.0) {
             output.invalid("solid stroke resolved width must be positive")
@@ -46,7 +33,7 @@ internal class SolidStrokePaintPlugin :
 
         output.add(
             SolidStrokePaintExecution(
-                color = color,
+                color = details.color,
                 widthPixels = widthPixels,
             ),
         )

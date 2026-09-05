@@ -7,17 +7,9 @@ import com.framesmith.media.paint.PaintResolutionContext
 import com.framesmith.media.paint.PaintSpec
 import kotlin.math.min
 
-internal class RadialGradientPaintPlugin :
-    PaintPlugin,
-    FrameSmithPaintSpecInspector {
+internal class RadialGradientPaintPlugin : PaintPlugin {
 
     override val paintId: PaintId = FrameSmithPaintIds.RADIAL_GRADIENT
-
-    override fun inspect(paint: PaintSpec): FrameSmithPaintSpecInspection {
-
-        return inspectRadialGradientSpec(paint)
-
-    }
 
     override fun resolve(
         paint: PaintSpec,
@@ -27,7 +19,7 @@ internal class RadialGradientPaintPlugin :
 
         val parsed =
             try {
-                parseRadialGradientParameters(paint.parameters)
+                FrameSmithPaintDetails.radialGradient(paint)
             } catch (failure: FrameSmithPaintParameterException) {
                 output.invalid(failure.message)
                 return

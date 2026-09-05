@@ -6,17 +6,9 @@ import com.framesmith.media.paint.PaintPluginOutput
 import com.framesmith.media.paint.PaintResolutionContext
 import com.framesmith.media.paint.PaintSpec
 
-internal class LinearGradientPaintPlugin :
-    PaintPlugin,
-    FrameSmithPaintSpecInspector {
+internal class LinearGradientPaintPlugin : PaintPlugin {
 
     override val paintId: PaintId = FrameSmithPaintIds.LINEAR_GRADIENT
-
-    override fun inspect(paint: PaintSpec): FrameSmithPaintSpecInspection {
-
-        return inspectLinearGradientSpec(paint)
-
-    }
 
     override fun resolve(
         paint: PaintSpec,
@@ -26,7 +18,7 @@ internal class LinearGradientPaintPlugin :
 
         val parsed =
             try {
-                parseLinearGradientParameters(paint.parameters)
+                FrameSmithPaintDetails.linearGradient(paint)
             } catch (failure: FrameSmithPaintParameterException) {
                 output.invalid(failure.message)
                 return

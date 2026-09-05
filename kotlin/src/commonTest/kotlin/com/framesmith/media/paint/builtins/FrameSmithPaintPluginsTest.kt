@@ -145,22 +145,19 @@ class FrameSmithPaintPluginsTest {
 
 }
 
-class FrameSmithPaintSpecInspectionTest {
+class FrameSmithPaintDetailsTest {
 
     @Test
-    fun `solid inspection exposes typed authored details`() {
+    fun `solid details expose authored color`() {
 
-        val inspection = FrameSmithPaintSpecs.inspect(FrameSmithPaintSpecs.solid("#123456"))
+        val details = FrameSmithPaintDetails.solid(FrameSmithPaintSpecs.solid("#123456"))
 
-        assertEquals(
-            FrameSmithPaintSpecInspection.Solid("#123456"),
-            inspection,
-        )
+        assertEquals(SolidPaintDetails("#123456"), details)
 
     }
 
     @Test
-    fun `gradient inspection exposes typed authored details`() {
+    fun `linear gradient details expose authored geometry`() {
 
         val stops =
             listOf(
@@ -169,17 +166,14 @@ class FrameSmithPaintSpecInspectionTest {
             )
         val start = FrameSmithPaintSpecs.PercentPointSpec(10.0, 20.0)
         val end = FrameSmithPaintSpecs.PercentPointSpec(90.0, 80.0)
-        val inspection = FrameSmithPaintSpecs.inspect(FrameSmithPaintSpecs.linearGradient(stops, start, end))
+        val details = FrameSmithPaintDetails.linearGradient(FrameSmithPaintSpecs.linearGradient(stops, start, end))
 
-        assertEquals(
-            FrameSmithPaintSpecInspection.LinearGradient(stops, start, end),
-            inspection,
-        )
+        assertEquals(LinearGradientPaintDetails(stops, start, end), details)
 
     }
 
     @Test
-    fun `radial gradient inspection exposes typed authored details`() {
+    fun `radial gradient details expose authored geometry`() {
 
         val stops =
             listOf(
@@ -187,39 +181,40 @@ class FrameSmithPaintSpecInspectionTest {
                 FrameSmithPaintSpecs.GradientStopSpec(100.0, "#000000"),
             )
         val center = FrameSmithPaintSpecs.PercentPointSpec(20.0, 30.0)
-        val inspection =
-            FrameSmithPaintSpecs.inspect(
+        val details =
+            FrameSmithPaintDetails.radialGradient(
                 FrameSmithPaintSpecs.radialGradient(stops, center, 45.0),
             )
 
-        assertEquals(
-            FrameSmithPaintSpecInspection.RadialGradient(stops, center, 45.0),
-            inspection,
-        )
+        assertEquals(RadialGradientPaintDetails(stops, center, 45.0), details)
 
     }
 
     @Test
-    fun `extension paint remains explicitly other`() {
+    fun `solid lookup ignores unrelated paint identities`() {
 
-        val inspection =
-            FrameSmithPaintSpecs.inspect(
+        val paints =
+            listOf(
                 PaintSpec(PaintId("example.paint.external")),
+                FrameSmithPaintSpecs.solid("#ABCDEF"),
             )
 
-        assertEquals(FrameSmithPaintSpecInspection.OtherPaint, inspection)
+        assertEquals(SolidPaintDetails("#ABCDEF"), FrameSmithPaintDetails.solidFrom(paints))
 
     }
 
     @Test
-    fun `malformed first-party paint remains explicit`() {
+    fun `malformed first party paint throws paint parameter exception`() {
 
-        val inspection =
-            FrameSmithPaintSpecs.inspect(
-                PaintSpec(FrameSmithPaintIds.SOLID),
-            )
+        val failure =
+            try {
+                FrameSmithPaintDetails.solid(PaintSpec(FrameSmithPaintIds.SOLID))
+                null
+            } catch (failure: FrameSmithPaintParameterException) {
+                failure
+            }
 
-        assertIs<FrameSmithPaintSpecInspection.InvalidFrameSmithPaint>(inspection)
+        assertIs<FrameSmithPaintParameterException>(failure)
 
     }
 

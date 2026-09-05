@@ -1,0 +1,30 @@
+slice: typed-paint-details
+status: active
+responsibility: "Replace the generic first-party paint inspection family with explicit typed authored-detail APIs owned by framesmith-paints-builtins."
+actor: "Product/editor code that needs details for one known FrameSmith paint identity without learning the complete first-party paint family."
+currentOwnership: "FrameSmithPaintSpecInspection exposed one sealed family containing every first-party paint shape plus InvalidFrameSmithPaint and OtherPaint. Consumers then discriminated that family to recover the one paint detail they actually needed."
+designProblem: "The generic inspection hierarchy exported complete-family knowledge to UI and test consumers, so adding radial gradient forced unrelated consumers to add a branch. The abstraction made the authored paint family closed at the presentation boundary even though paint identity is open."
+chosenResponse: production-refactor
+newOwnership: "FrameSmithPaintDetails exposes explicit SolidPaintDetails, SolidStrokePaintDetails, LinearGradientPaintDetails, and RadialGradientPaintDetails accessors. Each accessor validates one named paint identity and returns only that paint's authored semantics. Paint plugins reuse the same typed parsing path for resolution, while consumers that need one known paint ask for that capability directly instead of receiving a whole-family result."
+dependencyImprovement:
+  - "The sealed FrameSmithPaintSpecInspection family and its inspector registry are removed."
+  - "Adding a first-party paint no longer requires editing a central inspection result hierarchy."
+  - "UI presentation can compose independently keyed PaintId adapters rather than enumerating every first-party paint variant."
+  - "Text paint helpers can ask specifically for solid fill or solid stroke details without filtering a generic family by runtime type."
+behaviouralEvidence:
+  - "Typed solid, linear-gradient, and radial-gradient detail tests preserve authored values exactly."
+  - "Solid lookup ignores unrelated extension identities and returns the first matching FrameSmith solid paint."
+  - "Malformed first-party authored data raises FrameSmithPaintParameterException at the typed paint boundary."
+whyNotMetricGaming: "The change deletes the family consumers were branching over rather than moving its when/is checks into another helper. Each public detail type names one semantic paint capability and contains only that capability's authored facts."
+antiGaming:
+  parameterObjectCamouflage: "Each detail class is the typed authored representation of one concrete paint, not a generic bag used to hide branches."
+  oneToOneActionAlias: "FrameSmithPaintDetails is a product-facing typed parsing boundary shared by resolution and editor needs; it does not merely rename the removed inspection hierarchy."
+  mechanicalFunctionSplitting: "Per-paint accessors correspond to independent authored paint identities and prevent whole-family knowledge from leaking to callers."
+findings:
+  - rule: VariationAxisDispatch
+    symbol: FrameSmithPaintSpecInspection
+    disposition: production-refactor
+    justification: "The sealed inspection family caused consumers to discriminate the complete first-party paint family; typed per-paint details remove that ownership leak."
+verification:
+  canonicalCommand: "./gradlew check -ParchitectureSlice=typed-paint-details --console=plain"
+  canonicalResult: "PASS 2026-09-06: JVM + linuxX64 tests, architecture review, Human Parsing review, selected architecture ledger, ktlint, and shared quality guidance passed."
