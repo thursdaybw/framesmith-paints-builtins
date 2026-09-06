@@ -1,28 +1,7 @@
 package com.framesmith.media.paint.builtins
 
-import com.framesmith.media.paint.PaintObject
 import com.framesmith.media.paint.PaintSpec
-
-data class SolidPaintDetails(
-    val color: String,
-)
-
-data class SolidStrokePaintDetails(
-    val color: String,
-    val widthPercentOfHeight: Double,
-)
-
-data class LinearGradientPaintDetails(
-    val stops: List<FrameSmithPaintSpecs.GradientStopSpec>,
-    val start: FrameSmithPaintSpecs.PercentPointSpec,
-    val end: FrameSmithPaintSpecs.PercentPointSpec,
-)
-
-data class RadialGradientPaintDetails(
-    val stops: List<FrameSmithPaintSpecs.GradientStopSpec>,
-    val center: FrameSmithPaintSpecs.PercentPointSpec,
-    val radiusPercentOfMinimumDimension: Double,
-)
+import com.framesmith.media.value.StructuredObject
 
 object FrameSmithPaintDetails {
 
@@ -103,11 +82,7 @@ object FrameSmithPaintDetails {
 
 }
 
-class FrameSmithPaintParameterException(
-    override val message: String,
-) : IllegalArgumentException(message)
-
-internal fun parseRadialGradientParameters(parameters: PaintObject): RadialGradientPaintDetails {
+internal fun parseRadialGradientParameters(parameters: StructuredObject): RadialGradientPaintDetails {
 
     val stops = parseGradientStops(parameters)
     val center = parsePercentPoint(parameters.objectValue(CENTER), CENTER)
@@ -127,7 +102,7 @@ internal fun parseRadialGradientParameters(parameters: PaintObject): RadialGradi
 
 }
 
-internal fun parseLinearGradientParameters(parameters: PaintObject): LinearGradientPaintDetails {
+internal fun parseLinearGradientParameters(parameters: StructuredObject): LinearGradientPaintDetails {
 
     val stops = parseGradientStops(parameters)
     val start = parsePercentPoint(parameters.objectValue(START), START)
@@ -152,7 +127,7 @@ private fun requirePaintId(
 
 }
 
-private fun parseGradientStops(parameters: PaintObject): List<FrameSmithPaintSpecs.GradientStopSpec> {
+private fun parseGradientStops(parameters: StructuredObject): List<FrameSmithPaintSpecs.GradientStopSpec> {
 
     val values = parameters.list(STOPS)
 
@@ -163,7 +138,7 @@ private fun parseGradientStops(parameters: PaintObject): List<FrameSmithPaintSpe
     val stops = mutableListOf<FrameSmithPaintSpecs.GradientStopSpec>()
 
     for (value in values.values) {
-        val stop = value as? PaintObject
+        val stop = value as? StructuredObject
 
         if (stop == null) {
             throw FrameSmithPaintParameterException("each gradient stop must be an object")
@@ -193,7 +168,7 @@ private fun parseGradientStops(parameters: PaintObject): List<FrameSmithPaintSpe
 }
 
 private fun parsePercentPoint(
-    value: PaintObject?,
+    value: StructuredObject?,
     parameterName: String,
 ): FrameSmithPaintSpecs.PercentPointSpec {
 

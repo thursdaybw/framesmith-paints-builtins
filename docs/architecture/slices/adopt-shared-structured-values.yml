@@ -1,0 +1,27 @@
+slice: adopt-shared-structured-values
+status: complete
+responsibility: "Express built-in paint parameters using the canonical portable StructuredValue model owned by paint-core's shared value dependency."
+actor: "FrameSmith paint authors and hosts using built-in solid, stroke, linear-gradient, and radial-gradient paint capabilities."
+currentOwnership: "Built-in paint specs and parameter parsing still name the deleted paint-specific PaintObject/PaintText/PaintNumber/PaintList family."
+designProblem: "Paint built-ins would otherwise preserve a duplicate value algebra after paint-core adopted the canonical shared StructuredValue model."
+chosenResponse: production-refactor
+newOwnership: "Built-in paint specs construct StructuredObject values directly, and built-in paint parameter parsing consumes those canonical structured values without a paint-specific compatibility family."
+dependencyImprovement:
+  - "Built-in paints use the same structured parameter representation as PaintSpec."
+  - "No paint-specific value aliases or compatibility wrappers remain in built-in parameter construction or parsing."
+behaviouralEvidence:
+  - "Existing built-in paint plugin tests pass with StructuredObject and StructuredDecimal inputs."
+  - "JVM and linuxX64 test suites pass after the representation migration."
+whyNotMetricGaming: "This removes references to a deleted duplicate value algebra and follows the canonical PaintSpec parameter type; no suppression, alias, or behavioural indirection is introduced."
+antiGaming:
+  parameterObjectCamouflage: "StructuredObject is the canonical shared parameter value model, not a new wrapper introduced for a quality rule."
+  oneToOneActionAlias: "No forwarding aliases are introduced."
+  mechanicalFunctionSplitting: "No production responsibilities are split for metrics."
+findings:
+  - rule: CanonicalValueOwnership
+    symbol: FrameSmithPaintSpecs and built-in paint parameter parsing
+    disposition: production-refactor
+    justification: "Built-in paints must consume the same structured parameter contract owned by paint-core rather than retain a parallel paint-only value family."
+verification:
+  canonicalCommand: "./gradlew :kotlin:jvmTest :kotlin:linuxX64Test :kotlin:ktlintCheck -ParchitectureSlice=adopt-shared-structured-values --console=plain"
+  canonicalResult: "PASS 2026-09-06: JVM and linuxX64 tests and ktlint passed."

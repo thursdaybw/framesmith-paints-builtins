@@ -2,10 +2,10 @@ package com.framesmith.media.paint.builtins
 
 import com.framesmith.media.paint.PaintBounds
 import com.framesmith.media.paint.PaintId
-import com.framesmith.media.paint.PaintNumber
-import com.framesmith.media.paint.PaintObject
 import com.framesmith.media.paint.PaintResolutionContext
 import com.framesmith.media.paint.PaintSpec
+import com.framesmith.media.value.StructuredDecimal
+import com.framesmith.media.value.StructuredObject
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -73,7 +73,7 @@ class FrameSmithPaintPluginsTest {
     @Test
     fun malformedSuppliedSolidColorIsInvalidInsteadOfDefaulted() {
 
-        val spec = PaintSpec(FrameSmithPaintIds.SOLID, PaintObject.empty())
+        val spec = PaintSpec(FrameSmithPaintIds.SOLID, StructuredObject.empty())
         val failure =
             assertFailsWith<com.framesmith.media.paint.InvalidPaintParametersException> {
 
@@ -98,9 +98,9 @@ class FrameSmithPaintPluginsTest {
         val malformed =
             valid.copy(
                 parameters =
-                    PaintObject.from(
+                    StructuredObject.from(
                         valid.parameters.fields +
-                            (START to PaintObject.of(X_PERCENT to PaintNumber(20.0))),
+                            (START to StructuredObject.of(X_PERCENT to StructuredDecimal(20.0))),
                     ),
             )
 

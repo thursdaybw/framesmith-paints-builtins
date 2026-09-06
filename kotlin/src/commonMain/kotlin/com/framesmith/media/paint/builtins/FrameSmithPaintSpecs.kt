@@ -1,10 +1,10 @@
 package com.framesmith.media.paint.builtins
 
-import com.framesmith.media.paint.PaintList
-import com.framesmith.media.paint.PaintNumber
-import com.framesmith.media.paint.PaintObject
 import com.framesmith.media.paint.PaintSpec
-import com.framesmith.media.paint.PaintText
+import com.framesmith.media.value.StructuredDecimal
+import com.framesmith.media.value.StructuredList
+import com.framesmith.media.value.StructuredObject
+import com.framesmith.media.value.StructuredText
 
 /** Authored FrameSmith paint specs. Resolution semantics remain in the matching plugins. */
 object FrameSmithPaintSpecs {
@@ -13,7 +13,7 @@ object FrameSmithPaintSpecs {
 
         return PaintSpec(
             id = FrameSmithPaintIds.SOLID,
-            parameters = PaintObject.of(COLOR to PaintText(color)),
+            parameters = StructuredObject.of(COLOR to StructuredText(color)),
         )
 
     }
@@ -26,9 +26,9 @@ object FrameSmithPaintSpecs {
         return PaintSpec(
             id = FrameSmithPaintIds.SOLID_STROKE,
             parameters =
-                PaintObject.of(
-                    COLOR to PaintText(color),
-                    WIDTH_PERCENT_OF_HEIGHT to PaintNumber(widthPercentOfHeight),
+                StructuredObject.of(
+                    COLOR to StructuredText(color),
+                    WIDTH_PERCENT_OF_HEIGHT to StructuredDecimal(widthPercentOfHeight),
                 ),
         )
 
@@ -43,8 +43,8 @@ object FrameSmithPaintSpecs {
         return PaintSpec(
             id = FrameSmithPaintIds.LINEAR_GRADIENT,
             parameters =
-                PaintObject.of(
-                    STOPS to PaintList.from(stops.map(GradientStopSpec::toPaintValue)),
+                StructuredObject.of(
+                    STOPS to StructuredList.from(stops.map(GradientStopSpec::toPaintValue)),
                     START to start.toPaintValue(),
                     END to end.toPaintValue(),
                 ),
@@ -61,10 +61,10 @@ object FrameSmithPaintSpecs {
         return PaintSpec(
             id = FrameSmithPaintIds.RADIAL_GRADIENT,
             parameters =
-                PaintObject.of(
-                    STOPS to PaintList.from(stops.map(GradientStopSpec::toPaintValue)),
+                StructuredObject.of(
+                    STOPS to StructuredList.from(stops.map(GradientStopSpec::toPaintValue)),
                     CENTER to center.toPaintValue(),
-                    RADIUS_PERCENT_OF_MINIMUM_DIMENSION to PaintNumber(radiusPercentOfMinimumDimension),
+                    RADIUS_PERCENT_OF_MINIMUM_DIMENSION to StructuredDecimal(radiusPercentOfMinimumDimension),
                 ),
         )
 
@@ -75,11 +75,11 @@ object FrameSmithPaintSpecs {
         val color: String,
     ) {
 
-        internal fun toPaintValue(): PaintObject {
+        internal fun toPaintValue(): StructuredObject {
 
-            return PaintObject.of(
-                OFFSET_PERCENT to PaintNumber(offsetPercent),
-                COLOR to PaintText(color),
+            return StructuredObject.of(
+                OFFSET_PERCENT to StructuredDecimal(offsetPercent),
+                COLOR to StructuredText(color),
             )
 
         }
@@ -91,11 +91,11 @@ object FrameSmithPaintSpecs {
         val yPercent: Double,
     ) {
 
-        internal fun toPaintValue(): PaintObject {
+        internal fun toPaintValue(): StructuredObject {
 
-            return PaintObject.of(
-                X_PERCENT to PaintNumber(xPercent),
-                Y_PERCENT to PaintNumber(yPercent),
+            return StructuredObject.of(
+                X_PERCENT to StructuredDecimal(xPercent),
+                Y_PERCENT to StructuredDecimal(yPercent),
             )
 
         }
