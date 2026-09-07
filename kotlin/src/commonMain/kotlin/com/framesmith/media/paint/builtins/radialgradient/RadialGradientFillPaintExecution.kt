@@ -2,28 +2,32 @@ package com.framesmith.media.paint.builtins
 
 import com.framesmith.media.paint.PaintExecutionSpec
 
-/** Host-neutral execution request for a linear-gradient fill. */
-data class LinearGradientFillPaintExecution(
+/** Host-neutral execution request for a radial-gradient fill. */
+data class RadialGradientFillPaintExecution(
     val stops: List<PaintExecutionGradientStop>,
-    val start: PaintExecutionPoint,
-    val end: PaintExecutionPoint,
+    val center: PaintExecutionPoint,
+    val radiusPixels: Double,
 ) : PaintExecutionSpec {
 
-    override val id = FrameSmithPaintExecutionIds.LINEAR_GRADIENT_FILL
+    override val id = RadialGradientPaint.executionId
 
     init {
 
         require(stops.size >= MINIMUM_GRADIENT_STOP_COUNT) {
 
-            "LinearGradientFillPaintExecution must contain at least two stops"
+            "RadialGradientFillPaintExecution must contain at least two stops"
 
         }
         require(stops.zipWithNext().all(::isOrderedGradientStopPair)) {
 
-            "LinearGradientFillPaintExecution stops must be ordered by offsetPercent"
+            "RadialGradientFillPaintExecution stops must be ordered by offsetPercent"
 
         }
-        require(start != end) { "LinearGradientFillPaintExecution start and end must differ" }
+        require(radiusPixels.isFinite() && radiusPixels > 0.0) {
+
+            "RadialGradientFillPaintExecution radiusPixels must be finite and positive"
+
+        }
 
     }
 

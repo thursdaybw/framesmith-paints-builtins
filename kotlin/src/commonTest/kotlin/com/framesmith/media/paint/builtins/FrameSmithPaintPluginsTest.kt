@@ -4,7 +4,6 @@ import com.framesmith.media.paint.PaintBounds
 import com.framesmith.media.paint.PaintId
 import com.framesmith.media.paint.PaintResolutionContext
 import com.framesmith.media.paint.PaintSpec
-import com.framesmith.media.value.StructuredDecimal
 import com.framesmith.media.value.StructuredObject
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -20,7 +19,7 @@ class FrameSmithPaintPluginsTest {
 
         val executions =
             FrameSmithPaintPlugins.resolver().resolve(
-                listOf(FrameSmithPaintSpecs.solid("#123456")),
+                listOf(SolidPaint.spec("#123456")),
                 context,
             )
 
@@ -32,11 +31,11 @@ class FrameSmithPaintPluginsTest {
     fun linearGradientResolvesPercentPointsInsideShapeBounds() {
 
         val spec =
-            FrameSmithPaintSpecs.linearGradient(
+            LinearGradientPaint.spec(
                 stops =
                     listOf(
-                        FrameSmithPaintSpecs.GradientStopSpec(0.0, "#FF0000"),
-                        FrameSmithPaintSpecs.GradientStopSpec(100.0, "#0000FF"),
+                        GradientStopSpec(0.0, "#FF0000"),
+                        GradientStopSpec(100.0, "#0000FF"),
                     ),
             )
 
@@ -52,13 +51,13 @@ class FrameSmithPaintPluginsTest {
     fun radialGradientResolvesCenterAndRadiusInsideTargetBounds() {
 
         val spec =
-            FrameSmithPaintSpecs.radialGradient(
+            RadialGradientPaint.spec(
                 stops =
                     listOf(
-                        FrameSmithPaintSpecs.GradientStopSpec(0.0, "#FFFFFF"),
-                        FrameSmithPaintSpecs.GradientStopSpec(100.0, "#000000"),
+                        GradientStopSpec(0.0, "#FFFFFF"),
+                        GradientStopSpec(100.0, "#000000"),
                     ),
-                center = FrameSmithPaintSpecs.PercentPointSpec(25.0, 75.0),
+                center = PercentPointSpec(25.0, 75.0),
                 radiusPercentOfMinimumDimension = 40.0,
             )
 
@@ -73,7 +72,7 @@ class FrameSmithPaintPluginsTest {
     @Test
     fun malformedSuppliedSolidColorIsInvalidInsteadOfDefaulted() {
 
-        val spec = PaintSpec(FrameSmithPaintIds.SOLID, StructuredObject.empty())
+        val spec = PaintSpec(SolidPaint.id, StructuredObject.empty())
         val failure =
             assertFailsWith<com.framesmith.media.paint.InvalidPaintParametersException> {
 
@@ -81,28 +80,14 @@ class FrameSmithPaintPluginsTest {
 
             }
 
-        assertEquals(FrameSmithPaintIds.SOLID, failure.paintId)
+        assertEquals(SolidPaint.id, failure.paintId)
 
     }
 
     @Test
     fun malformedGradientPointIsInvalid() {
 
-        val valid =
-            FrameSmithPaintSpecs.linearGradient(
-                listOf(
-                    FrameSmithPaintSpecs.GradientStopSpec(0.0, "#FF0000"),
-                    FrameSmithPaintSpecs.GradientStopSpec(100.0, "#0000FF"),
-                ),
-            )
-        val malformed =
-            valid.copy(
-                parameters =
-                    StructuredObject.from(
-                        valid.parameters.fields +
-                            (START to StructuredObject.of(X_PERCENT to StructuredDecimal(20.0))),
-                    ),
-            )
+        val malformed = PaintSpec(LinearGradientPaint.id, StructuredObject.empty())
 
         val failure =
             assertFailsWith<com.framesmith.media.paint.InvalidPaintParametersException> {
@@ -111,7 +96,7 @@ class FrameSmithPaintPluginsTest {
 
             }
 
-        assertEquals(FrameSmithPaintIds.LINEAR_GRADIENT, failure.paintId)
+        assertEquals(LinearGradientPaint.id, failure.paintId)
 
     }
 
@@ -150,7 +135,7 @@ class FrameSmithPaintDetailsTest {
     @Test
     fun `solid details expose authored color`() {
 
-        val details = FrameSmithPaintDetails.solid(FrameSmithPaintSpecs.solid("#123456"))
+        val details = SolidPaint.details(SolidPaint.spec("#123456"))
 
         assertEquals(SolidPaintDetails("#123456"), details)
 
@@ -161,12 +146,12 @@ class FrameSmithPaintDetailsTest {
 
         val stops =
             listOf(
-                FrameSmithPaintSpecs.GradientStopSpec(0.0, "#111111"),
-                FrameSmithPaintSpecs.GradientStopSpec(100.0, "#EEEEEE"),
+                GradientStopSpec(0.0, "#111111"),
+                GradientStopSpec(100.0, "#EEEEEE"),
             )
-        val start = FrameSmithPaintSpecs.PercentPointSpec(10.0, 20.0)
-        val end = FrameSmithPaintSpecs.PercentPointSpec(90.0, 80.0)
-        val details = FrameSmithPaintDetails.linearGradient(FrameSmithPaintSpecs.linearGradient(stops, start, end))
+        val start = PercentPointSpec(10.0, 20.0)
+        val end = PercentPointSpec(90.0, 80.0)
+        val details = LinearGradientPaint.details(LinearGradientPaint.spec(stops, start, end))
 
         assertEquals(LinearGradientPaintDetails(stops, start, end), details)
 
@@ -177,13 +162,13 @@ class FrameSmithPaintDetailsTest {
 
         val stops =
             listOf(
-                FrameSmithPaintSpecs.GradientStopSpec(0.0, "#FFFFFF"),
-                FrameSmithPaintSpecs.GradientStopSpec(100.0, "#000000"),
+                GradientStopSpec(0.0, "#FFFFFF"),
+                GradientStopSpec(100.0, "#000000"),
             )
-        val center = FrameSmithPaintSpecs.PercentPointSpec(20.0, 30.0)
+        val center = PercentPointSpec(20.0, 30.0)
         val details =
-            FrameSmithPaintDetails.radialGradient(
-                FrameSmithPaintSpecs.radialGradient(stops, center, 45.0),
+            RadialGradientPaint.details(
+                RadialGradientPaint.spec(stops, center, 45.0),
             )
 
         assertEquals(RadialGradientPaintDetails(stops, center, 45.0), details)
@@ -196,10 +181,10 @@ class FrameSmithPaintDetailsTest {
         val paints =
             listOf(
                 PaintSpec(PaintId("example.paint.external")),
-                FrameSmithPaintSpecs.solid("#ABCDEF"),
+                SolidPaint.spec("#ABCDEF"),
             )
 
-        assertEquals(SolidPaintDetails("#ABCDEF"), FrameSmithPaintDetails.solidFrom(paints))
+        assertEquals(SolidPaintDetails("#ABCDEF"), SolidPaint.detailsFrom(paints))
 
     }
 
@@ -208,7 +193,7 @@ class FrameSmithPaintDetailsTest {
 
         val failure =
             try {
-                FrameSmithPaintDetails.solid(PaintSpec(FrameSmithPaintIds.SOLID))
+                SolidPaint.details(PaintSpec(SolidPaint.id))
                 null
             } catch (failure: FrameSmithPaintParameterException) {
                 failure

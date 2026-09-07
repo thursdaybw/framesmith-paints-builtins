@@ -1,6 +1,5 @@
 package com.framesmith.media.paint.builtins
 
-import com.framesmith.media.paint.PaintId
 import com.framesmith.media.paint.PaintPlugin
 import com.framesmith.media.paint.PaintPluginOutput
 import com.framesmith.media.paint.PaintResolutionContext
@@ -8,7 +7,7 @@ import com.framesmith.media.paint.PaintSpec
 
 internal class SolidStrokePaintPlugin : PaintPlugin {
 
-    override val paintId: PaintId = FrameSmithPaintIds.SOLID_STROKE
+    override val paintId = SolidStrokePaint.id
 
     override fun resolve(
         paint: PaintSpec,
@@ -18,7 +17,7 @@ internal class SolidStrokePaintPlugin : PaintPlugin {
 
         val details =
             try {
-                FrameSmithPaintDetails.solidStroke(paint)
+                SolidStrokePaint.details(paint)
             } catch (failure: FrameSmithPaintParameterException) {
                 output.invalid(failure.message)
                 return

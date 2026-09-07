@@ -7,7 +7,7 @@ data class SolidFillPaintExecution(
     val color: String,
 ) : PaintExecutionSpec {
 
-    override val id = FrameSmithPaintExecutionIds.SOLID_FILL
+    override val id = SolidPaint.executionId
 
     init {
 

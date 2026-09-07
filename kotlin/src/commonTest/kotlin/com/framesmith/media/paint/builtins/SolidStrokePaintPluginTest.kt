@@ -13,7 +13,7 @@ class SolidStrokePaintPluginTest {
 
         val executions =
             FrameSmithPaintPlugins.resolver().resolve(
-                paints = listOf(FrameSmithPaintSpecs.solidStroke("#112233", 2.5)),
+                paints = listOf(SolidStrokePaint.spec("#112233", 2.5)),
                 context = PaintResolutionContext(PaintBounds(0.0, 0.0, 200.0, 80.0)),
             )
 
@@ -27,7 +27,7 @@ class SolidStrokePaintPluginTest {
         assertFailsWith<com.framesmith.media.paint.InvalidPaintParametersException> {
 
             FrameSmithPaintPlugins.resolver().resolve(
-                paints = listOf(FrameSmithPaintSpecs.solidStroke("#112233", 0.0)),
+                paints = listOf(SolidStrokePaint.spec("#112233", 0.0)),
                 context = PaintResolutionContext(PaintBounds(0.0, 0.0, 200.0, 80.0)),
             )
 

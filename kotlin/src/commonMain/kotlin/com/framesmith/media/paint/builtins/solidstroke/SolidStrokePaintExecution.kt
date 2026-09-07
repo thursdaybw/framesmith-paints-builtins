@@ -8,7 +8,7 @@ data class SolidStrokePaintExecution(
     val widthPixels: Double,
 ) : PaintExecutionSpec {
 
-    override val id = FrameSmithPaintExecutionIds.SOLID_STROKE
+    override val id = SolidStrokePaint.executionId
 
     init {
 

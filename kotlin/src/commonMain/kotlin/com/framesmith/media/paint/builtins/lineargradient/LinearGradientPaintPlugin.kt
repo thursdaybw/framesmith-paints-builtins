@@ -1,6 +1,5 @@
 package com.framesmith.media.paint.builtins
 
-import com.framesmith.media.paint.PaintId
 import com.framesmith.media.paint.PaintPlugin
 import com.framesmith.media.paint.PaintPluginOutput
 import com.framesmith.media.paint.PaintResolutionContext
@@ -8,7 +7,7 @@ import com.framesmith.media.paint.PaintSpec
 
 internal class LinearGradientPaintPlugin : PaintPlugin {
 
-    override val paintId: PaintId = FrameSmithPaintIds.LINEAR_GRADIENT
+    override val paintId = LinearGradientPaint.id
 
     override fun resolve(
         paint: PaintSpec,
@@ -18,7 +17,7 @@ internal class LinearGradientPaintPlugin : PaintPlugin {
 
         val parsed =
             try {
-                FrameSmithPaintDetails.linearGradient(paint)
+                LinearGradientPaint.details(paint)
             } catch (failure: FrameSmithPaintParameterException) {
                 output.invalid(failure.message)
                 return
@@ -33,28 +32,12 @@ internal class LinearGradientPaintPlugin : PaintPlugin {
 
         output.add(
             LinearGradientFillPaintExecution(
-                stops = parsed.stops.map(FrameSmithPaintSpecs.GradientStopSpec::toExecutionStop),
+                stops = parsed.stops.map(GradientExecutionValues::stopFrom),
                 start = start,
                 end = end,
             ),
         )
 
     }
-
-}
-
-private fun FrameSmithPaintSpecs.GradientStopSpec.toExecutionStop(): PaintExecutionGradientStop {
-
-    return PaintExecutionGradientStop(offsetPercent, color)
-
-}
-
-private fun FrameSmithPaintSpecs.PercentPointSpec.resolveIn(context: PaintResolutionContext): PaintExecutionPoint {
-
-    val bounds = context.bounds
-    return PaintExecutionPoint(
-        x = bounds.x + (bounds.widthPixels * xPercent / FULL_PERCENT),
-        y = bounds.y + (bounds.heightPixels * yPercent / FULL_PERCENT),
-    )
 
 }

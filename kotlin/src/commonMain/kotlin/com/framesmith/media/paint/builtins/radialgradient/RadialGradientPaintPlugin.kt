@@ -1,6 +1,5 @@
 package com.framesmith.media.paint.builtins
 
-import com.framesmith.media.paint.PaintId
 import com.framesmith.media.paint.PaintPlugin
 import com.framesmith.media.paint.PaintPluginOutput
 import com.framesmith.media.paint.PaintResolutionContext
@@ -9,7 +8,7 @@ import kotlin.math.min
 
 internal class RadialGradientPaintPlugin : PaintPlugin {
 
-    override val paintId: PaintId = FrameSmithPaintIds.RADIAL_GRADIENT
+    override val paintId = RadialGradientPaint.id
 
     override fun resolve(
         paint: PaintSpec,
@@ -19,14 +18,14 @@ internal class RadialGradientPaintPlugin : PaintPlugin {
 
         val parsed =
             try {
-                FrameSmithPaintDetails.radialGradient(paint)
+                RadialGradientPaint.details(paint)
             } catch (failure: FrameSmithPaintParameterException) {
                 output.invalid(failure.message)
                 return
             }
         val center = parsed.center.resolveIn(context)
         val minimumDimension = min(context.bounds.widthPixels, context.bounds.heightPixels)
-        val radiusPixels = minimumDimension * parsed.radiusPercentOfMinimumDimension / FULL_PERCENT
+        val radiusPixels = minimumDimension * parsed.radiusPercentOfMinimumDimension / GradientPaintParameters.FULL_PERCENT
 
         if (!radiusPixels.isFinite() || radiusPixels <= 0.0) {
             output.invalid("radial gradient resolved radius must be positive")
@@ -35,28 +34,12 @@ internal class RadialGradientPaintPlugin : PaintPlugin {
 
         output.add(
             RadialGradientFillPaintExecution(
-                stops = parsed.stops.map(FrameSmithPaintSpecs.GradientStopSpec::toExecutionStop),
+                stops = parsed.stops.map(GradientExecutionValues::stopFrom),
                 center = center,
                 radiusPixels = radiusPixels,
             ),
         )
 
     }
-
-}
-
-private fun FrameSmithPaintSpecs.GradientStopSpec.toExecutionStop(): PaintExecutionGradientStop {
-
-    return PaintExecutionGradientStop(offsetPercent, color)
-
-}
-
-private fun FrameSmithPaintSpecs.PercentPointSpec.resolveIn(context: PaintResolutionContext): PaintExecutionPoint {
-
-    val bounds = context.bounds
-    return PaintExecutionPoint(
-        x = bounds.x + (bounds.widthPixels * xPercent / FULL_PERCENT),
-        y = bounds.y + (bounds.heightPixels * yPercent / FULL_PERCENT),
-    )
 
 }

@@ -1,0 +1,31 @@
+slice: paint-component-cohesion
+status: active
+responsibility: "Make each FrameSmith first-party paint a cohesive independently evolvable component rather than an open plugin surrounded by central built-in catalogs."
+actor: "FrameSmith paint implementers and composition roots adding, changing, replacing, removing, composing, or hosting first-party paints."
+currentOwnership: "A single paint implementation was spread across FrameSmithPaintIds, FrameSmithPaintSpecs, FrameSmithPaintDetails, FrameSmithPaintExecutionIds, its plugin, details type, execution type, and the aggregate installer. Gradient value semantics were additionally nested under the global spec catalog."
+designProblem: "The paint axis was technically open but failed the six-operation locality test. Adding or removing one built-in required coordinated edits across several unrelated catalogs, and FrameSmithPaintDetails centrally discriminated the whole built-in family."
+chosenResponse: production-refactor
+newOwnership: "Each built-in paint now owns its authored identity, execution identity, spec factory, parameter parsing/details, plugin, and execution primitive in one physical implementation area. Linear and radial gradients share only genuine gradient stop/point mechanics. FrameSmithPaintPlugins is reduced to the outer first-party composition list."
+dependencyImprovement:
+  - "Stable paint-core remains unchanged and implementation-neutral."
+  - "Consumers ask SolidPaint, SolidStrokePaint, LinearGradientPaint, or RadialGradientPaint directly instead of depending on global built-in id/spec/details/execution catalogs."
+  - "The aggregate installer knows only installable paint components; it no longer owns their parameter semantics or execution identities."
+  - "Removing one paint no longer leaves branches in FrameSmithPaintDetails or entries in multiple independent catalogs."
+  - "Shared gradient mechanics remain shared only because linear and radial gradients genuinely use the same authored stop/point concepts."
+behaviouralEvidence:
+  - "Existing solid, stroke, linear-gradient, radial-gradient, malformed-parameter, and extension-composition JVM tests pass through the new component APIs."
+  - "Production compilation passes with FrameSmithPaintIds, FrameSmithPaintSpecs, FrameSmithPaintDetails, and FrameSmithPaintExecutionIds deleted."
+  - "External PaintPluginContribution still resolves through the same PaintPluginComposition path as FrameSmith built-ins."
+whyNotMetricGaming: "This change removes four central family catalogs and physically groups ownership by conceptual paint. It does not hide the same family dispatch behind aliases or base classes; consumers and tests migrate directly to the owning paint component."
+antiGaming:
+  parameterObjectCamouflage: "GradientStopSpec and PercentPointSpec remain explicit shared authored concepts because two independent gradient paints genuinely compose them."
+  oneToOneActionAlias: "SolidPaint and the other component objects own identity, construction, and parsing policy for one conceptual implementation; they are not forwarding wrappers around the removed catalogs."
+  mechanicalFunctionSplitting: "Physical subdirectories follow conceptual ownership. Files remain separate where they represent distinct public or execution concepts, not to reduce metrics."
+findings:
+  - rule: SixOperationLocality
+    symbol: FrameSmith first-party paint built-ins
+    disposition: production-refactor
+    justification: "Open identity alone was insufficient because add/change/replace/remove/compose/host operations still required edits across central catalogs. Per-paint ownership makes those operations local while preserving a thin explicit composition root."
+verification:
+  canonicalCommand: "./gradlew :kotlin:check -ParchitectureSlice=paint-component-cohesion --no-daemon --console=plain"
+  canonicalResult: "PASS 2026-09-07: JVM + linuxX64 tests, ktlint, Human Parsing review, Architecture Review, architecture ledger, and quality guidance all passed with 0 architecture/Human Parsing findings."
