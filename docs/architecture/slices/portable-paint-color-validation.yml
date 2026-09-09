@@ -1,0 +1,29 @@
+slice: portable-paint-color-validation
+status: complete
+responsibility: "Validate FrameSmith first-party authored paint color syntax before emitting host-neutral paint execution specs."
+actor: "FrameSmith paint authors and render-planning consumers that require the same authored color validity on every host."
+currentOwnership: "Solid fill, solid stroke, and gradient paints accepted any non-blank color text, leaving Android and other target executors to discover malformed color syntax while materialising platform colors."
+designProblem: "Color validity is authored paint meaning, not Android graphics mechanics. Letting malformed values reach target executors makes project validity backend-dependent and can turn a portable validation failure into a platform exception or fallback."
+chosenResponse: production-refactor
+newOwnership: "framesmith-paints-builtins validates the current first-party #RRGGBB/#AARRGGBB color syntax inside each built-in paint's parameter parsing path. Invalid solid, stroke, or gradient colors are rejected through the existing PaintPluginOutput -> InvalidPaintParametersException contract before any target execution adapter is invoked."
+dependencyImprovement:
+  - "Android, Java2D, and future paint executors receive only color text already validated by the owning portable paint implementation."
+  - "Paint-core remains implementation-neutral; first-party color syntax stays with the first-party paints that define it."
+  - "No host needs to copy FrameSmith built-in color-validation policy."
+behaviouralEvidence:
+  - "Solid paint with color 'black' is rejected as InvalidPaintParametersException before target execution."
+  - "A linear-gradient stop with color 'white' is rejected through the same portable failure contract."
+  - "Valid #RRGGBB colors continue to resolve to the existing typed execution specs."
+whyNotMetricGaming: "The change moves a real product invariant inward from platform parsers to the portable paint owner. It adds no suppression, compatibility wrapper, fallback, or target-specific branch."
+antiGaming:
+  parameterObjectCamouflage: "No new public parameter object is introduced; the private validator expresses one shared invariant used by several first-party paint implementations."
+  oneToOneActionAlias: "FrameSmithColorText does not wrap target parsing; it owns portable acceptance syntax and throws the existing paint-parameter failure before execution."
+  mechanicalFunctionSplitting: "The shared validator removes duplicated syntax policy across solid, stroke, and gradient parsing rather than splitting methods for detector counts."
+findings:
+  - rule: PortableValidationOwnership
+    symbol: "first-party paint color parameters"
+    disposition: production-refactor
+    justification: "The same authored paint must be valid or invalid independently of the target graphics API, so color syntax belongs to the portable first-party paint implementation."
+verification:
+  canonicalCommand: "./gradlew :kotlin:jvmTest :kotlin:linuxX64Test -ParchitectureSlice=portable-paint-color-validation --console=plain"
+  canonicalResult: "PASS 2026-09-09: JVM and linuxX64 tests pass; invalid solid and gradient colors are rejected before target execution."

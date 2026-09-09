@@ -85,6 +85,46 @@ class FrameSmithPaintPluginsTest {
     }
 
     @Test
+    fun nonHexSolidColorIsRejectedBeforeTargetExecution() {
+
+        val failure =
+            assertFailsWith<com.framesmith.media.paint.InvalidPaintParametersException> {
+
+                FrameSmithPaintPlugins.resolver().resolve(
+                    listOf(SolidPaint.spec("black")),
+                    context,
+                )
+
+            }
+
+        assertEquals(SolidPaint.id, failure.paintId)
+
+    }
+
+    @Test
+    fun nonHexGradientColorIsRejectedBeforeTargetExecution() {
+
+        val spec =
+            LinearGradientPaint.spec(
+                stops =
+                    listOf(
+                        GradientStopSpec(0.0, "#000000"),
+                        GradientStopSpec(100.0, "white"),
+                    ),
+            )
+
+        val failure =
+            assertFailsWith<com.framesmith.media.paint.InvalidPaintParametersException> {
+
+                FrameSmithPaintPlugins.resolver().resolve(listOf(spec), context)
+
+            }
+
+        assertEquals(LinearGradientPaint.id, failure.paintId)
+
+    }
+
+    @Test
     fun malformedGradientPointIsInvalid() {
 
         val malformed = PaintSpec(LinearGradientPaint.id, StructuredObject.empty())

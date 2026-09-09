@@ -26,11 +26,11 @@ object SolidPaint {
     fun details(paint: PaintSpec): SolidPaintDetails {
 
         requirePaintIdentity(paint)
-        val color = paint.parameters.text(COLOR_PARAMETER)
-
-        if (color.isNullOrBlank()) {
-            throw FrameSmithPaintParameterException("solid paint requires a non-blank '$COLOR_PARAMETER'")
-        }
+        val color =
+            FrameSmithColorText.requireValid(
+                value = paint.parameters.text(COLOR_PARAMETER),
+                description = "solid paint '$COLOR_PARAMETER'",
+            )
 
         return SolidPaintDetails(color)
 

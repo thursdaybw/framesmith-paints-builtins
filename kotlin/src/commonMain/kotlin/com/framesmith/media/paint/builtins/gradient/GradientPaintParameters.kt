@@ -74,11 +74,16 @@ internal object GradientPaintParameters {
     private fun parseStop(stop: StructuredObject): GradientStopSpec {
 
         val offsetPercent = stop.number(OFFSET_PERCENT)
-        val color = stop.text(COLOR)
 
-        if (offsetPercent == null || offsetPercent !in MINIMUM_PERCENT..FULL_PERCENT || color.isNullOrBlank()) {
-            throw FrameSmithPaintParameterException("each gradient stop requires valid '$OFFSET_PERCENT' and '$COLOR'")
+        if (offsetPercent == null || offsetPercent !in MINIMUM_PERCENT..FULL_PERCENT) {
+            throw FrameSmithPaintParameterException("each gradient stop requires valid '$OFFSET_PERCENT'")
         }
+
+        val color =
+            FrameSmithColorText.requireValid(
+                value = stop.text(COLOR),
+                description = "gradient stop '$COLOR'",
+            )
 
         return GradientStopSpec(offsetPercent, color)
 

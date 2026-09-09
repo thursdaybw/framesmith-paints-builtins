@@ -34,12 +34,12 @@ object SolidStrokePaint {
     fun details(paint: PaintSpec): SolidStrokePaintDetails {
 
         requirePaintIdentity(paint)
-        val color = paint.parameters.text(COLOR_PARAMETER)
+        val color =
+            FrameSmithColorText.requireValid(
+                value = paint.parameters.text(COLOR_PARAMETER),
+                description = "solid stroke '$COLOR_PARAMETER'",
+            )
         val widthPercentOfHeight = paint.parameters.number(WIDTH_PERCENT_OF_HEIGHT_PARAMETER)
-
-        if (color.isNullOrBlank()) {
-            throw FrameSmithPaintParameterException("solid stroke requires a non-blank '$COLOR_PARAMETER'")
-        }
 
         if (widthPercentOfHeight == null || !widthPercentOfHeight.isFinite() || widthPercentOfHeight <= 0.0) {
             throw FrameSmithPaintParameterException(
